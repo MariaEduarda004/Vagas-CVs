@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>CVs | Vagas & CVs</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<nav class="navbar navbar-expand-lg bg-white border-bottom mb-3">
+  <div class="container">
+    <a class="navbar-brand fw-semibold" href="/index.html">Vagas & CVs</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div id="nav" class="collapse navbar-collapse">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link" href="/jobs.html">Vagas</a></li>
+        <li class="nav-item"><a class="nav-link active" href="/cvs.html">CVs</a></li>
+        <li class="nav-item"><a class="nav-link" href="/match.html">Matching</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<main class="container">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3">CVs</h1>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cvModal" onclick="openCreateCv()">Novo CV</button>
+  </div>
+  <div class="table-responsive bg-white border rounded">
+    <table class="table table-sm align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Nome</th>
+          <th>Headline</th>
+          <th>Local</th>
+          <th>Senioridade</th>
+          <th>Tipo desejado</th>
+          <th>Skills</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="cvsTbody"></tbody>
+    </table>
+  </div>
+</main>
+
+<div class="modal fade" id="cvModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <form class="modal-content" onsubmit="return submitCv(event)">
+      <div class="modal-header">
+        <h5 class="modal-title" id="cvModalTitle">Novo CV</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body row g-3">
+        <input type="hidden" name="id">
+        <div class="col-md-6">
+          <label class="form-label">Nome</label>
+          <input class="form-control" name="name" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Headline</label>
+          <input class="form-control" name="headline" required>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Resumo</label>
+          <textarea class="form-control" name="summary" rows="3"></textarea>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Cidade</label>
+          <input class="form-control" name="city">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">UF</label>
+          <input class="form-control" name="uf">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Geo (lat,lon)</label>
+          <input class="form-control" name="geo">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Anos exp</label>
+          <input class="form-control" name="years_exp" type="number">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Senioridade</label>
+          <input class="form-control" name="seniority" placeholder="jr/pl/sr">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Tipo desejado</label>
+          <input class="form-control" name="desired_type" placeholder="clt/pj">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Skills (vírgula)</label>
+          <input class="form-control" name="skills" placeholder="node.js,javascript,docker">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/app.js"></script>
+<script>
+  const cvModal = new bootstrap.Modal('#cvModal');
+  const cvForm = document.querySelector('#cvModal form');
+
+  async function fetchCvs(params='') {
+    const r = await fetch('/cvs' + (params ? `?${params}` : ''));
+    return r.json();
+  }
+
+  async function renderCvs(params='') {
+    const tbody = document.getElementById('cvsTbody');
+    tbody.innerHTML = '';
+    const { hits } = await fetchCvs(params);
+    hits.forEach(c => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${escapeHtml(c.name)}</td>
+        <td>${escapeHtml(c.headline || '')}</td>
+        <td>${escapeHtml((c.location?.city || '') + (c.location?.uf ? '/'+c.location.uf : ''))}</td>
+        <td>${escapeHtml(c.seniority || '')}</td>
+        <td>${escapeHtml(c.desired_type || '')}</td>
+        <td><small>${(c.skills||[]).map(escapeHtml).join(', ')}</small></td>
+        <td class="text-end">
+          <button class="btn btn-sm btn-outline-primary me-1" onclick='openEditCv(${JSON.stringify(c)})'>Editar</button>
+          <button class="btn btn-sm btn-outline-danger" onclick='deleteCv("${c.id}")'>Excluir</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function openCreateCv() {
+    cvForm.reset();
+    cvForm.id.value = '';
+    document.getElementById('cvModalTitle').textContent = 'Novo CV';
+  }
+
+  function openEditCv(c) {
+    cvForm.id.value = c.id;
+    cvForm.name.value = c.name || '';
+    cvForm.headline.value = c.headline || '';
+    cvForm.summary.value = c.summary || '';
+    cvForm.city.value = c.location?.city || '';
+    cvForm.uf.value = c.location?.uf || '';
+    cvForm.geo.value = c.location?.geo || '';
+    cvForm.years_exp.value = c.years_exp || '';
+    cvForm.seniority.value = c.seniority || '';
+    cvForm.desired_type.value = c.desired_type || '';
+    cvForm.skills.value = (c.skills||[]).join(',');
+    document.getElementById('cvModalTitle').textContent = 'Editar CV';
+    cvModal.show();
+  }
+
+  async function submitCv(e) {
+    e.preventDefault();
+    const f = e.target;
+    const payload = {
+      name: f.name.value,
+      headline: f.headline.value,
+      summary: f.summary.value,
+      location: { city: f.city.value, uf: f.uf.value, geo: f.geo.value },
+      years_exp: f.years_exp.value ? Number(f.years_exp.value) : undefined,
+      seniority: f.seniority.value,
+      skills: f.skills.value ? f.skills.value.split(',').map(s => s.trim()).filter(Boolean) : [],
+      desired_type: f.desired_type.value
+    };
+
+    const isEdit = !!f.id.value;
+    const url = isEdit ? `/cvs/${f.id.value}` : '/cvs';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const r = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    if (!r.ok) alert('Erro ao salvar');
+    cvModal.hide();
+    renderCvs();
+    return false;
+  }
+
+  async function deleteCv(id) {
+    if (!confirm('Excluir CV?')) return;
+    const r = await fetch(`/cvs/${id}`, { method: 'DELETE' });
+    if (!r.ok) alert('Erro ao excluir');
+    renderCvs();
+  }
+
+  renderCvs();
+</script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Vagas | Vagas & CVs</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<nav class="navbar navbar-expand-lg bg-white border-bottom mb-3">
+  <div class="container">
+    <a class="navbar-brand fw-semibold" href="/index.html">Vagas & CVs</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div id="nav" class="collapse navbar-collapse">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link active" href="/jobs.html">Vagas</a></li>
+        <li class="nav-item"><a class="nav-link" href="/cvs.html">CVs</a></li>
+        <li class="nav-item"><a class="nav-link" href="/match.html">Matching</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<main class="container">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3">Vagas</h1>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#jobModal" onclick="openCreateJob()">Nova Vaga</button>
+  </div>
+  <div class="table-responsive bg-white border rounded">
+    <table class="table table-sm align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Título</th>
+          <th>Empresa</th>
+          <th>Local</th>
+          <th>Senioridade</th>
+          <th>Tipo</th>
+          <th>Skills</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="jobsTbody"></tbody>
+    </table>
+  </div>
+</main>
+<div class="modal fade" id="jobModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <form class="modal-content" onsubmit="return submitJob(event)">
+      <div class="modal-header">
+        <h5 class="modal-title" id="jobModalTitle">Nova Vaga</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body row g-3">
+        <input type="hidden" name="id">
+        <div class="col-md-6">
+          <label class="form-label">Título</label>
+          <input class="form-control" name="title" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Empresa</label>
+          <input class="form-control" name="company" required>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Descrição</label>
+          <textarea class="form-control" name="description" rows="3" required></textarea>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Cidade</label>
+          <input class="form-control" name="city">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">UF</label>
+          <input class="form-control" name="uf">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Geo (lat,lon)</label>
+          <input class="form-control" name="geo" placeholder="-30.0346,-51.2177">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Salário mín</label>
+          <input class="form-control" name="salary_min" type="number">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Salário máx</label>
+          <input class="form-control" name="salary_max" type="number">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Senioridade</label>
+          <input class="form-control" name="seniority" placeholder="jr/pl/sr">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Tipo</label>
+          <input class="form-control" name="type" placeholder="clt/pj">
+        </div>
+        <div class="col-12">
+          <label class="form-label">Skills (vírgula)</label>
+          <input class="form-control" name="skills" placeholder="node.js,javascript,docker">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/app.js"></script>
+<script>
+  const jobModal = new bootstrap.Modal('#jobModal');
+  const jobForm = document.querySelector('#jobModal form');
+
+  async function fetchJobs(params = '') {
+    const r = await fetch('/jobs' + (params ? `?${params}` : ''));
+    return r.json();
+  }
+
+  async function renderJobs(params = '') {
+    const tbody = document.getElementById('jobsTbody');
+    tbody.innerHTML = '';
+    const { hits } = await fetchJobs(params);
+    hits.forEach(j => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${escapeHtml(j.title)}</td>
+        <td>${escapeHtml(j.company || '')}</td>
+        <td>${escapeHtml((j.location?.city || '') + (j.location?.uf ? '/'+j.location.uf : ''))}</td>
+        <td>${escapeHtml(j.seniority || '')}</td>
+        <td>${escapeHtml(j.type || '')}</td>
+        <td><small>${(j.skills||[]).map(escapeHtml).join(', ')}</small></td>
+        <td class="text-end">
+          <button class="btn btn-sm btn-outline-primary me-1" onclick='openEditJob(${JSON.stringify(j)})'>Editar</button>
+          <button class="btn btn-sm btn-outline-danger" onclick='deleteJob("${j.id}")'>Excluir</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function openCreateJob() {
+    jobForm.reset();
+    jobForm.id.value = '';
+    document.getElementById('jobModalTitle').textContent = 'Nova Vaga';
+  }
+
+  function openEditJob(j) {
+    jobForm.id.value = j.id;
+    jobForm.title.value = j.title || '';
+    jobForm.company.value = j.company || '';
+    jobForm.description.value = j.description || '';
+    jobForm.city.value = j.location?.city || '';
+    jobForm.uf.value = j.location?.uf || '';
+    jobForm.geo.value = j.location?.geo || '';
+    jobForm.salary_min.value = j.salary_min || '';
+    jobForm.salary_max.value = j.salary_max || '';
+    jobForm.seniority.value = j.seniority || '';
+    jobForm.type.value = j.type || '';
+    jobForm.skills.value = (j.skills||[]).join(',');
+    document.getElementById('jobModalTitle').textContent = 'Editar Vaga';
+    jobModal.show();
+  }
+
+  async function submitJob(e) {
+    e.preventDefault();
+    const f = e.target;
+    const payload = {
+      title: f.title.value,
+      company: f.company.value,
+      description: f.description.value,
+      location: { city: f.city.value, uf: f.uf.value, geo: f.geo.value },
+      salary_min: f.salary_min.value ? Number(f.salary_min.value) : undefined,
+      salary_max: f.salary_max.value ? Number(f.salary_max.value) : undefined,
+      seniority: f.seniority.value,
+      type: f.type.value,
+      skills: f.skills.value ? f.skills.value.split(',').map(s => s.trim()).filter(Boolean) : []
+    };
+
+    const isEdit = !!f.id.value;
+    const url = isEdit ? `/jobs/${f.id.value}` : '/jobs';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const r = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    if (!r.ok) alert('Erro ao salvar');
+    jobModal.hide();
+    renderJobs();
+    return false;
+  }
+
+  async function deleteJob(id) {
+    if (!confirm('Excluir vaga?')) return;
+    const r = await fetch(`/jobs/${id}`, { method: 'DELETE' });
+    if (!r.ok) alert('Erro ao excluir');
+    renderJobs();
+  }
+
+  renderJobs();
+</script>
+</body>
+</html>
