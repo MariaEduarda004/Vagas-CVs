@@ -113,6 +113,7 @@
   const jobForm = document.querySelector('#jobModal form');
 
   async function fetchJobs(params = '') {
+
     const r = await fetch('/jobs' + (params ? `?${params}` : ''));
     return r.json();
   }
@@ -121,8 +122,10 @@
     const tbody = document.getElementById('jobsTbody');
     tbody.innerHTML = '';
     const { hits } = await fetchJobs(params);
+
     hits.forEach(j => {
       const tr = document.createElement('tr');
+
       tr.innerHTML = `
         <td>${escapeHtml(j.title)}</td>
         <td>${escapeHtml(j.company || '')}</td>
@@ -164,6 +167,7 @@
   async function submitJob(e) {
     e.preventDefault();
     const f = e.target;
+
     const payload = {
       title: f.title.value,
       company: f.company.value,
@@ -180,7 +184,12 @@
     const url = isEdit ? `/jobs/${f.id.value}` : '/jobs';
     const method = isEdit ? 'PUT' : 'POST';
 
-    const r = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    const r = await fetch(url, { 
+      method, 
+      headers: { 'Content-Type': 'application/json' }, 
+      body: JSON.stringify(payload) 
+    });
+
     if (!r.ok) alert('Erro ao salvar');
     jobModal.hide();
     renderJobs();
@@ -189,7 +198,11 @@
 
   async function deleteJob(id) {
     if (!confirm('Excluir vaga?')) return;
-    const r = await fetch(`/jobs/${id}`, { method: 'DELETE' });
+    
+    const r = await fetch(`/jobs/${id}`, { 
+      method: 'DELETE' 
+    });
+
     if (!r.ok) alert('Erro ao excluir');
     renderJobs();
   }

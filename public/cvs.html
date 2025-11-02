@@ -118,8 +118,10 @@
     const tbody = document.getElementById('cvsTbody');
     tbody.innerHTML = '';
     const { hits } = await fetchCvs(params);
+
     hits.forEach(c => {
       const tr = document.createElement('tr');
+
       tr.innerHTML = `
         <td>${escapeHtml(c.name)}</td>
         <td>${escapeHtml(c.headline || '')}</td>
@@ -160,6 +162,7 @@
   async function submitCv(e) {
     e.preventDefault();
     const f = e.target;
+    
     const payload = {
       name: f.name.value,
       headline: f.headline.value,
@@ -175,7 +178,14 @@
     const url = isEdit ? `/cvs/${f.id.value}` : '/cvs';
     const method = isEdit ? 'PUT' : 'POST';
 
-    const r = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    const r = await fetch(url, { 
+      method,
+      headers: { 
+        'Content-Type': 'application/json' 
+      }, 
+      body: JSON.stringify(payload) }
+    );
+
     if (!r.ok) alert('Erro ao salvar');
     cvModal.hide();
     renderCvs();
@@ -184,7 +194,11 @@
 
   async function deleteCv(id) {
     if (!confirm('Excluir CV?')) return;
-    const r = await fetch(`/cvs/${id}`, { method: 'DELETE' });
+
+    const r = await fetch(`/cvs/${id}`, {
+      method: 'DELETE' 
+    });
+
     if (!r.ok) alert('Erro ao excluir');
     renderCvs();
   }

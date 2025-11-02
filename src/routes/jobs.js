@@ -49,7 +49,7 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// Search
+// Search Jobs
 router.get('/', async (req, res) => {
   const {
     q,                  
@@ -102,7 +102,7 @@ router.get('/', async (req, res) => {
       }
     }
   };
-
+  console.log(JSON.stringify(body, null, 2));
   const r = await es.search({ index: INDEX.JOBS, body });
   res.json({
     total: r.hits.total?.value || 0,

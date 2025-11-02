@@ -2,13 +2,14 @@ import { Router } from 'express';
 import { es, INDEX } from '../services/es.js';
 
 const router = Router();
+// Match CVs 
 router.get('/cvs', async (req, res) => {
   const {
     skills = '', uf, city, seniority, desired_type,
     min_skills = 1, size = 20, from = 0, q
   } = req.query;
 
-  const skillList = String(skills)
+  const skillList = String(skills) //divide as skills por vírgula
     .split(',')
     .map(s => s.trim().toLowerCase())
     .filter(Boolean);
@@ -19,13 +20,12 @@ router.get('/cvs', async (req, res) => {
   if (seniority) filter.push({ term: { seniority } });
   if (desired_type) filter.push({ term: { desired_type } });
 
-  const perSkillGroups = skillList.map(s => ({
+
+  const perSkillGroups = skillList.map(s => ({ // para cada skill, cria um grupo de should
     bool: {
       should: [
-        { term: { 'skills': s } },               
-        { term: { 'skills.keyword': s } },        
-        { match_phrase: { 'skills': s } },        
-        { match: { 'skills': { query: s, operator: 'AND' } } }
+        { term: { 'skills': s } },              
+        { match_phrase: { 'skills': s } }        
       ],
       minimum_should_match: 1
     }
@@ -41,7 +41,7 @@ router.get('/cvs', async (req, res) => {
 
   const groupsNeeded = skillList.length ? Math.min(skillList.length, Number(min_skills) || 1) : 0;
 
-  if (!skillList.length && !q && !uf && !city && !seniority && !desired_type) {
+  if (!skillList.length && !q && !uf && !city && !seniority && !desired_type) { // nenhum filtro fornecido
     return res.status(400).json({ error: 'provide_at_least_one_filter', hint: 'skills, q, uf, city, seniority ou desired_type' });
   }
 
@@ -57,6 +57,14 @@ router.get('/cvs', async (req, res) => {
     },
     sort: ['_score', { created_at: 'desc' }]
   };
+  
+  console.log('\nELASTICSEARCH QUERY DEBUG AQUIII');
+  console.log('Skills recebidas:', skillList);
+  console.log('Grupos de skills:', perSkillGroups.length);
+  console.log('Filtros aplicados:', filter.length);
+  console.log('Query completa:');
+  console.log(JSON.stringify(body, null, 2));
+  console.log('FIM DEBUG\n');
 
   const r = await es.search({ index: INDEX.CVS, body });
   res.json({

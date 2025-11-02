@@ -5,7 +5,7 @@ const router = Router();
 // Search CVs
 router.get('/', async (req, res) => {
   const { 
-    q,
+    q, // parametros gerais de busca
     seniority,
     desired_type,
     city,
@@ -23,7 +23,10 @@ router.get('/', async (req, res) => {
     must.push({
       multi_match: {
         query: q,
-        fields: ['name^2', 'headline^2', 'summary', 'skills^3'],
+        fields: ['name^2', 
+          'headline^2', 
+          'summary', 
+          'skills^3'], // boost em name, headline e skills
         type: 'best_fields'
       }
     });
@@ -51,6 +54,8 @@ router.get('/', async (req, res) => {
     sort: [{ created_at: 'desc' }]
   };
 
+  console.log(JSON.stringify(body, null, 2));
+
   const r = await es.search({ index: INDEX.CVS, body });
   res.json({
     total: r.hits.total?.value || 0,
@@ -60,8 +65,9 @@ router.get('/', async (req, res) => {
 
 // Create CV
 router.post('/', async (req, res) => {
+
   const doc = {
-    ...req.body,
+    ...req.body, 
     skills: Array.isArray(req.body.skills) ? req.body.skills.map(s => String(s).trim().toLowerCase()) : [],
     created_at: new Date()
   };
@@ -72,9 +78,11 @@ router.post('/', async (req, res) => {
 // Read CV by id
 router.get('/:id', async (req, res) => {
   try {
+
     const r = await es.get({ index: INDEX.CVS, id: req.params.id });
     res.json({ id: r._id, ...r._source });
   } catch {
+
     res.status(404).json({ error: 'not_found' });
   }
 });
@@ -82,6 +90,7 @@ router.get('/:id', async (req, res) => {
 // Update CV
 router.put('/:id', async (req, res) => {
     try {
+
     const patch = {
       ...req.body,
       ...(req.body.skills ? { skills: req.body.skills.map(s => String(s).trim().toLowerCase()) } : {})
@@ -89,6 +98,7 @@ router.put('/:id', async (req, res) => {
     await es.update({ index: INDEX.CVS, id: req.params.id, doc: patch, refresh: 'wait_for' });
     const r = await es.get({ index: INDEX.CVS, id: req.params.id });
     res.json({ id: r._id, ...r._source });
+
   } catch {
     res.status(404).json({ error: 'not_found' });
   }
@@ -97,9 +107,11 @@ router.put('/:id', async (req, res) => {
 // Delete CV
 router.delete('/:id', async (req, res) => {
   try {
+
     await es.delete({ index: INDEX.CVS, id: req.params.id, refresh: 'wait_for' });
     res.json({ ok: true });
   } catch {
+    
     res.status(404).json({ error: 'not_found' });
   }
 });

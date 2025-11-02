@@ -1,13 +1,13 @@
-# 💼 Vagas & CVs
+# Vagas e CVs
 
 Sistema para cadastrar vagas e CVs, e realizar matching inteligente por skills e filtros (UF, cidade, senioridade, tipo de contrato).
 
 **Backend** em Node.js/Express integrado com **Elasticsearch** para busca avançada.  
 **Frontend** em HTML + Bootstrap para interface simples e responsiva.
 
-> 🎓 Este projeto foi desenvolvido para a disciplina de **Tópicos Especiais em BackEnd II**
+Este projeto foi desenvolvido para a disciplina de **Tópicos Especiais em BackEnd II**
 
-## 🚀 Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 - **Node.js** 20.x LTS
 - **Express** - Framework web
@@ -17,24 +17,24 @@ Sistema para cadastrar vagas e CVs, e realizar matching inteligente por skills e
 - **Bootstrap 5** - Framework CSS (CDN)
 - **HTML/JavaScript** - Frontend puro
 
-## 📋 Pré-requisitos
+## Pré-requisitos
 
 Antes de começar, certifique-se de ter instalado:
 
-- ✅ **Docker Desktop** (rodando)
-- ✅ **Node.js 18+** (recomendado: 20.x LTS)
-- ✅ **Git**
+- **Docker Desktop** (rodando)
+- **Node.js 18+** (recomendado: 20.x LTS)
+- **Git**
 
-## 🛠️ Como Rodar Localmente
+## Como Rodar Localmente
 
-### 1️⃣ Clonar o repositório
+### Clonar o repositório
 
 ```bash
-git clone https://github.com/MariaEduarda004/Vagas-CVs.git
+git clone https://github.com/MariaEduarda004/vagas_curriculos_elasticsearch.git
 cd vagas-cvs
 ```
 
-### 2️⃣ Criar o arquivo `.env`
+### Criar o arquivo `.env`
 
 ```env
 PORT=3001
@@ -43,7 +43,7 @@ JOBS_INDEX=jobs
 CVS_INDEX=cvs
 ```
 
-### 3️⃣ Subir o Elasticsearch (Docker)
+### Subir o Elasticsearch (Docker)
 
 Certifique-se de que o **Docker Desktop** está aberto e execute:
 
@@ -51,13 +51,13 @@ Certifique-se de que o **Docker Desktop** está aberto e execute:
 docker compose up -d
 ```
 
-### 4️⃣ Instalar dependências
+### Instalar dependências
 
 ```bash
 npm install
 ```
 
-### 5️⃣ Criar os índices no Elasticsearch
+### Criar os índices no Elasticsearch
 
 ```bash
 npm run setup
@@ -65,68 +65,9 @@ npm run setup
 
 > Isso cria os índices `jobs` e `cvs` no Elasticsearch (se não existirem)
 
-### 6️⃣ Rodar a API em modo desenvolvimento
+### Rodar a API em modo desenvolvimento
 
 ```bash
 npm run dev
 ```
-
-🎉 **A API estará disponível em:** `http://localhost:3001`
-
-## 🌐 Interface Web
-
-Acesse as páginas do sistema:
-
-| Página | URL | Descrição |
-|--------|-----|-----------|
-| 🏠 **Home** | http://localhost:3001 | Página inicial |
-| 💼 **Vagas** | http://localhost:3001/jobs.html | CRUD de vagas |
-| 📄 **CVs** | http://localhost:3001/cvs.html | CRUD de currículos |
-| 🎯 **Matching** | http://localhost:3001/match.html | Busca CVs por skills + filtros |
-
-## 📡 Endpoints da API
-
-### 💼 Vagas
-
-```http
-# Cadastrar nova vaga
-POST /jobs
-Content-Type: application/json
-
-# Buscar vagas com filtros
-GET /jobs?q=node&seniority=pl&type=clt
-```
-
-### 📄 CVs
-
-```http
-# Cadastrar novo CV
-POST /cvs
-Content-Type: application/json
-```
-
-### 🎯 Matching Inteligente
-
-```http
-# Buscar CVs por skills + filtros avançados
-GET /match/cvs?skills=node.js,javascript&min_skills=1&uf=RS&city=Porto%20Alegre&seniority=pl&desired_type=clt
-```
-
-## 📁 Estrutura do Projeto
-
-```
-vagas-cvs/
-├── 📂 public/           # Frontend (HTML + CSS + JS)
-│   ├── index.html       # Página inicial
-│   ├── jobs.html        # Interface de vagas
-│   ├── cvs.html         # Interface de CVs
-│   ├── match.html       # Interface de matching
-│   └── assets/
-│       └── app.js       # Lógica do frontend
-├── 📂 src/              # Backend
-│   ├── index.js         # Servidor principal
-│   ├── routes/          # Rotas da API
-│   └── services/        # Serviços (Elasticsearch)
-├── 📂 scripts/          # Scripts utilitários
-└── 📄 package.json      # Dependências e scripts
-```
+**A API estará disponível em:** `http://localhost:3001`
