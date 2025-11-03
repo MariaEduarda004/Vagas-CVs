@@ -30,7 +30,7 @@ Antes de começar, certifique-se de ter instalado:
 ### Clonar o repositório
 
 ```bash
-git clone https://github.com/MariaEduarda004/vagas_curriculos_elasticsearch.git
+git clone https://github.com/MariaEduarda004/Vagas-CVs.git
 cd vagas-cvs
 ```
 
